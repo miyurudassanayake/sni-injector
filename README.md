@@ -1,7 +1,7 @@
 # ssh-ssl-http-injector
 
-http ssl ssh tunneling socks5 proxy
-working with <h4><b>windows, macos, linux & android</b></h4><br>
+http ssl ssh tunneling socks5 proxy<br>
+working on <h4><b>windows, macos, linux & android</b></h4><br>
 
 
 # how to use
