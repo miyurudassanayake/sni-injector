@@ -7,14 +7,6 @@ class injector:
     def __init__(self):
         pass
 
-    def conf(self):
-        config = configparser.ConfigParser()
-        try:
-            config.read_file(open('settings.ini'))
-        except Exception as e:
-            self.logs(e)
-        return config
-
     def payloadformating(self, payload, host, port):
         self.logs(f'[TCP] Sending payload :\n{payload}')
         payload = payload.replace('[crlf]', '\r\n')
