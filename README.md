@@ -23,8 +23,9 @@ What if we can modify our SNI and gain access to different sites? Yes! we can. H
 ![option](https://github.com/miyurudassanayake/ssh-ssl-http-injector-to-socks5/blob/main/zoom.us.png)
 
 
+### How to do it
 
-
+To do so, we need to install a proxy on our server and enable TLS encryption. We can use an SSH tunnel to access a proxy that is already installed on the server. And stunnel can be used to add TLS encryption to that connection.
 
 
 # how to use
