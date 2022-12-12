@@ -1,7 +1,11 @@
 # ssh-ssl-http-injector
-
 http ssl ssh tunneling socks5 proxy<br>
 working on <h4><b>windows, macos, linux</b></h4><br>
+
+### What is an SNI?
+
+[***Server Name Indication (SNI)***](https://en.wikipedia.org/wiki/Server_Name_Indication) is an extension to the Transport Layer Security (TLS) computer networking protocol by which a client indicates which hostname it is attempting to connect to at the start of the handshaking process.This allows a server to present one of multiple possible certificates on the same IP address and TCP port number and hence allows multiple secure (HTTPS) websites (or any other service over TLS) to be served by the same IP address without requiring all those sites to use the same certificate [<sup>Read more</sup>](https://en.wikipedia.org/wiki/Server_Name_Indication)
+
 
 
 # how to use
