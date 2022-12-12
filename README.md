@@ -17,10 +17,9 @@ SNI bug hosts can be in various forms. They can be a packet host, a free CDN hos
 
 If you have a subscription to <code>zoom.us</code> and want to visit Zoom, your ISP's firewall will scan every time your SSL handshake to determine if the SNI is "zoom.us", and if it does, the firewall will enable you to keep that connection free fo charge. When you have a subscription to access internet, this is what happens. 
 
-What if we can modify our SNI and gain access to different sites? Yes! we can. However, SNI verification will fail, and the connection will be terminated by host. *We also have the option of using our own SSL connection and use a proxy through it access the internet.*
-
-
-
+What if we can modify our SNI and gain access to different sites? Yes! we can. However, SNI verification will fail, and the connection will be terminated by host. And We also have the option of ***our own SSL connection and use a proxy through it access the internet.***
+*Here's a simple diagram showing how it's done.*
+![option](https://github.com/miyurudassanayake/ssh-ssl-http-injector-to-socks5/blob/main/zoom.us.png)
 
 
 
