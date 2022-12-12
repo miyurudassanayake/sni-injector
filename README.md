@@ -5,7 +5,22 @@ working on <h4><b>windows, macos, linux</b></h4><br>
 ### What is an SNI?
 
 [***Server Name Indication (SNI)***](https://en.wikipedia.org/wiki/Server_Name_Indication) is an extension to the Transport Layer Security (TLS) computer networking protocol by which a client indicates which hostname it is attempting to connect to at the start of the handshaking process.This allows a server to present one of multiple possible certificates on the same IP address and TCP port number and hence allows multiple secure (HTTPS) websites (or any other service over TLS) to be served by the same IP address without requiring all those sites to use the same certificate [<sup>Read more</sup>](https://en.wikipedia.org/wiki/Server_Name_Indication)
+
+Here's a screenshot of Wireshark while I'm attempting to connect to zoom.us via https.
 ![ssl.handshake.sni](https://github.com/miyurudassanayake/ssh-ssl-http-injector-to-socks5/blob/main/Screenshot%20from%202022-12-12%2018-28-49.png)
+As you can see I added <code>ssl.handshake.extensions_server_name=zoom.us</code> filter
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # how to use
