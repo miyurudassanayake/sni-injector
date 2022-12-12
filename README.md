@@ -1,6 +1,4 @@
-# ssh-ssl-http-injector
-http ssl ssh tunneling socks5 proxy<br>
-working on <h4><b>windows, macos, linux</b></h4><br>
+# ssh-ssl-sni-injector
 
 ### What is a SNI?
 
