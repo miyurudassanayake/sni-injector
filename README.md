@@ -19,6 +19,7 @@ If you have a subscription to <code>zoom.us</code> and want to visit Zoom, your 
 
 What if we can modify our SNI and gain access to different sites? Yes! we can. However, SNI verification will fail, and the connection will be terminated by host. And We also have the option of ***our own SSL connection and use a proxy through it access the internet.***
 *Here's a simple diagram showing how it's done.*
+
 ![option](https://github.com/miyurudassanayake/ssh-ssl-http-injector-to-socks5/blob/main/zoom.us.png)
 
 
