@@ -26,12 +26,16 @@ What if we can modify our SNI and gain access to different sites? Yes! we can. H
 To do so, we need to install a proxy on our server and enable TLS encryption. We can use an SSH tunnel to access a proxy that is already installed on the server. And stunnel can be used to add TLS encryption to that connection.
 ![stunnel](https://github.com/miyurudassanayake/ssh-ssl-http-injector-to-socks5/blob/main/static/stunnel.png)
 
-# how to use
+
+
+# How to use
   1) Add your SNI host and ssh host to <code>settings.ini</code></li><br>
     ![image](https://user-images.githubusercontent.com/90369043/184321639-3340d961-8971-43ef-824e-3b47638251b2.png)<br><br>
-  3) Run python script.
-  <code>python3 tunnel.py</code>
-  2) Run ssh command.<br>
+
+  2) Run python script.
+  <code>python3 main.py</code>
+
+  3) Run ssh command.<br>
     <pre>ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" username@host -p 443 -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null</pre>
   <i>or</i><br>
     <pre>sshpass -p password ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" username@1host -p 443 -v -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null</pre><br>
