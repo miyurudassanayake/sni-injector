@@ -28,7 +28,8 @@ To do so, we need to install a proxy on our server and enable TLS encryption. We
 
 
 
-# How to use
+# How to use this script
+
   1) Add your SNI host and ssh host to <code>settings.ini</code></li><br>
     ![image](https://user-images.githubusercontent.com/90369043/184321639-3340d961-8971-43ef-824e-3b47638251b2.png)<br><br>
 
