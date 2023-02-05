@@ -33,19 +33,19 @@ To do so, we need to install a proxy on our server and enable TLS encryption. We
 
 # Run
   1) Clone the repository.<br>
-  <pre>git clone https://github.com/miyurudassanayake/sni-injector.git</pre>
+    <pre>git clone https://github.com/miyurudassanayake/sni-injector.git</pre>
 
   2) Add your SNI host and ssh host to <code>settings.ini</code><br>
     <img src="https://user-images.githubusercontent.com/90369043/184321639-3340d961-8971-43ef-824e-3b47638251b2.png" width="200px"><br>
 
   3) Run python script.<br>
-  <pre>python3 main.py</pre>
+    <pre>python3 main.py</pre>
 
   4) Run ssh command. (or run <b>ssh.sh</b> file.)<br>
-    <pre>ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" <username>@<host> -p 443 -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null</pre>
+    <pre>ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null</pre>
   <i>or</i><br>
-    <pre>sshpass -p <password> ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" <username>@<host> -p 443 -v -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null</pre><br>
+    <pre>sshpass -p [password] ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -v -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null</pre><br>
 
   5) Add socks5 proxy and Enjoy!<br><br>
-  <code>host: 127.0.0.1</code><br>
-  <code>port: 1080</code>
+    <code>host: 127.0.0.1</code><br>
+    <code>port: 1080</code>
