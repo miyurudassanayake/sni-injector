@@ -1,6 +1,10 @@
 # Python SSH SSL SNI Injector For Free Internet [HTTP Injector]
 
-[Installation & Usage](https://github.com/miyurudassanayake/sni-injector#Installation)
+<p align="center">
+   <a href="#installation">Installation & Usage</a>
+   &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+   <a href="#introduction">Introduction</a>
+</p>
 
 ## Introduction
 
@@ -32,20 +36,25 @@ To do so, we need to install a proxy on our server and enable TLS encryption. We
 
 ## Windows
 
-1. Clone the repository.<br>
+1. Clone the repository.<br><br>
 2. Install requirements.<br>
-   <pre>pip install -r requirements.txt</pre>
+   ```console
+   pip install -r requirements.txt
+   ```
 3. Add your SNI host and ssh host to <code>settings.ini </code><br>
    <img src="https://user-images.githubusercontent.com/90369043/184321639-3340d961-8971-43ef-824e-3b47638251b2.png" width="200px"><br>
 4. Run Python script.<br>
-   <pre>python main.py</pre>
+   ```console
+   python3 main.py
+   ```
 5. Install nmap. *(you need ncat for run this script)*.<br>
-   nmap download [page](https://nmap.org/dist/).
+   nmap download [page](https://nmap.org/dist/).<br><br>
 6. Run ssh command.
-   <pre>ssh -C -o "ProxyCommand=ncat --proxy 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=nul
-   </pre>
+   ```console
+   ssh -C -o "ProxyCommand=ncat --proxy 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=nul
+   ```
 7. Add socks5 proxy and Enjoy!<br>
-   <code>host: 127.0.0.1 </code><br>
+   <code>host: localhost/127.0.0.1 </code><br>
    <code>port: 1080 </code>
 
 <br>
@@ -53,17 +62,25 @@ To do so, we need to install a proxy on our server and enable TLS encryption. We
 ## Linux
 
 1. Clone the repository.<br>
-   <pre>git clone https://github.com/miyurudassanayake/sni-injector.git </pre>
+   ```console
+   git clone https://github.com/miyurudassanayake/sni-injector.git
+   ```
 2. Add your SNI host and ssh host to <code> settings.ini </code><br>
    <img src="https://user-images.githubusercontent.com/90369043/184321639-3340d961-8971-43ef-824e-3b47638251b2.png" width="200px"><br>
 3. Run python script. <br>
-   <pre>python3 main.py </pre>
+   ```console
+   python3 main.py
+   ```
 4. Run ssh command. (or run <b>ssh.sh </b> file.)<br>
-   <pre> ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null </pre>
+   ```console
+   ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+   ```
    <i>or </i><br>
-   <pre>sshpass -p [password] ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -v -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null </pre>
+   ```console
+   sshpass -p [password] ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -v -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+   ```
 5. Add socks5 proxy and Enjoy!<br>
-   <code>host: 127.0.0.1 </code><br>
+   <code>host: localhost/127.0.0.1 </code><br>
    <code>port: 1080 </code>
 
 <br>
