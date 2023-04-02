@@ -1,10 +1,10 @@
 # Python SSH SSL SNI Injector For Free Internet [HTTP Injector]
 
-[Straight to use script](https://github.com/miyurudassanayake/sni-injector#Run)
+[Installation & Usage](https://github.com/miyurudassanayake/sni-injector#Installation)
 
 ## Introduction
 
-### What is a SNI?
+### What is SNI?
 
 [***Server Name Indication (SNI)***](https://en.wikipedia.org/wiki/Server_Name_Indication) is an extension to the Transport Layer Security (TLS) computer networking protocol by which a client indicates which hostname it is attempting to connect to at the start of the handshaking process.This allows a server to present one of multiple possible certificates on the same IP address and TCP port number and hence allows multiple secure (HTTPS) websites (or any other service over TLS) to be served by the same IP address without requiring all those sites to use the same certificate [<sup>Read more</sup>](https://en.wikipedia.org/wiki/Server_Name_Indication)
 
@@ -12,7 +12,7 @@ Here's a screenshot of **Wireshark** while I'm attempting to connect to zoom.us 
 <img src="https://github.com/miyurudassanayake/sni-injector/blob/main/static/wireshark.png" width="70%"><br>
 As you can see, I applied the <code>ssl.handshake.extensions server name=zoom.us</code> filter to wireshark to filter ssl handshakes where sni is <code>zoom.us</code>.
 
-### What is a SNI BUG Host
+### What is SNI BUG Host
 
 SNI bug hosts can be in various forms. They can be a packet host, a free CDN host, government portals, zero-rated websites, social media (subscription), and a variety of other sites. They also do a fantastic job of getting over your Internet service provider's firewall.
 
@@ -28,7 +28,7 @@ What if we can modify our SNI and gain access to different sites? Yes! we can. H
 To do so, we need to install a proxy on our server and enable TLS encryption. We can use an SSH tunnel to access a proxy that is already installed on the server. And stunnel can be used to add TLS encryption to that connection.
 <img src="https://github.com/miyurudassanayake/sni-injector/blob/main/static/stunnel.png" width="80%">
 
-# Run
+# Installation
 
 ## Windows
 
@@ -47,7 +47,8 @@ To do so, we need to install a proxy on our server and enable TLS encryption. We
 7. Add socks5 proxy and Enjoy!<br>
    <code>host: 127.0.0.1 </code><br>
    <code>port: 1080 </code>
-   
+
+<br>
 
 ## Linux
 
@@ -60,7 +61,13 @@ To do so, we need to install a proxy on our server and enable TLS encryption. We
 4. Run ssh command. (or run <b>ssh.sh </b> file.)<br>
    <pre> ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null </pre>
    <i>or </i><br>
-   <pre>sshpass -p [password] ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -v -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null </pre><br>
+   <pre>sshpass -p [password] ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:9092 %h %p" [username]@[host] -p 443 -v -CND 1080 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null </pre>
 5. Add socks5 proxy and Enjoy!<br>
    <code>host: 127.0.0.1 </code><br>
    <code>port: 1080 </code>
+
+<br>
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/miyurudassanayake/sni-injector.svg)](https://github.com/miyurudassanayake/sni-injector)
