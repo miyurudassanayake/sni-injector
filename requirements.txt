@@ -1,7 +1,3 @@
-select
 configparser
-ssl
-os
 certifi
-socket
 warnings
