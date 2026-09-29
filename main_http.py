@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+HTTP Custom Payload Injector
+Improved version with proper SSH banner waiting
+"""
+
 import socket
 import select
 import threading
@@ -19,7 +24,7 @@ class Colors:
 
 
 class HTTPInjector:
-    def __init__(self, config_file="settings_http.ini"):
+    def __init__(self, config_file="settings.ini"):
         self.config = configparser.ConfigParser()
         if not os.path.exists(config_file):
             print(f"{Colors.RED}[!] {config_file} not found{Colors.RESET}")
@@ -32,6 +37,7 @@ class HTTPInjector:
 
         self.ssh_host = self.config.get("ssh", "host", fallback="127.0.0.1")
         self.ssh_port = self.config.getint("ssh", "port", fallback=22)
+        self.ssh_user = self.config.get("ssh", "user", fallback="root")
 
         try:
             self.payload_template = self.config.get("payload", "payload")
@@ -58,7 +64,7 @@ class HTTPInjector:
 
         print(f"{Colors.CYAN}[*] HTTP Payload Injector started{Colors.RESET}")
         print(f"    Local       : {self.local_ip}:{self.listen_port}")
-        print(f"    SSH Target  : {self.ssh_host}:{self.ssh_port}")
+        print(f"    SSH Target  : {self.ssh_user}@{self.ssh_host}:{self.ssh_port}")
         if self.use_proxy:
             print(f"    Remote Proxy: {self.proxy_host}:{self.proxy_port}")
         else:
@@ -263,9 +269,9 @@ class HTTPInjector:
             sys.exit(1)
 
         print(f"\n{Colors.YELLOW}Run this SSH command in another terminal:{Colors.RESET}")
-        print(f'ssh -C -o "ProxyCommand=nc -X CONNECT -x 127.0.0.1:{self.listen_port} %h %p" \\')
-        print(f"    USER@{self.ssh_host} -p {self.ssh_port} -CND 1080 \\")
-        print(f"    -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\n")
+        print(f'ssh -C -o "ProxyCommand=nc -X CONNECT -x {self.local_ip}:{self.listen_port} %h %p" \\')
+        print(f'    {self.ssh_user}@{self.ssh_host} -p {self.ssh_port} -CND 1080 \\')
+        print(f'    -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\n')
         print(f"{Colors.CYAN}After login, set your apps to SOCKS5 -> 127.0.0.1:1080{Colors.RESET}\n")
 
         try:

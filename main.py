@@ -14,6 +14,8 @@ import os
 import sys
 import socket
 import warnings
+import argparse
+import runpy
 
 import certifi
 
@@ -43,6 +45,7 @@ class Tunnel:
 
         self.ssh_host = self.config.get("ssh", "host", fallback="127.0.0.1")
         self.ssh_port = self.config.getint("ssh", "port", fallback=443)
+        self.ssh_user = self.config.get("ssh", "user", fallback="root")
 
         self.sni_host = self.config.get("sni", "server_name", fallback=self.ssh_host)
 
@@ -51,8 +54,13 @@ class Tunnel:
 
         print(f"{Colors.CYAN}[*] SNI/SSL Tunnel started{Colors.RESET}")
         print(f"    Local     : {self.local_ip}:{self.listen_port}")
-        print(f"    Target    : {self.ssh_host}:{self.ssh_port}")
+        print(f"    Target    : {self.ssh_user}@{self.ssh_host}:{self.ssh_port}")
         print(f"    SNI       : {self.sni_host}")
+        print("-" * 55)
+        print(f"{Colors.YELLOW}Suggested SSH command:{Colors.RESET}")
+        print(f'ssh -C -o "ProxyCommand=nc -X CONNECT -x {self.local_ip}:{self.listen_port} %h %p" \\')
+        print(f'    {self.ssh_user}@{self.ssh_host} -p {self.ssh_port} -CND 1080 \\')
+        print(f'    -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null')
         print("-" * 55)
 
     def log(self, msg, level="info"):
@@ -149,7 +157,7 @@ class Tunnel:
 
             self.log("Tunnel established - starting relay", "success")
             closed_by_helper = True
-            self.tunneling(client, remote_socket)  # decrements active_connections itself
+            self.tunneling(client, remote_socket)
 
         except socket.timeout:
             self.log("Connection timed out", "error")
@@ -197,5 +205,24 @@ class Tunnel:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="SNI / HTTP Tunnel")
+    parser.add_argument("-http", "--http", action="store_true", help="Force HTTP Payload mode")
+    parser.add_argument("-tls", "--tls", "--sni", action="store_true", help="Force TLS/SNI mode")
+    args = parser.parse_args()
+
+    if args.http:
+        mode = "http"
+    elif args.tls:
+        mode = "sni"
+    else:
+        config = configparser.ConfigParser()
+        config.read("settings.ini")
+        mode = config.get("settings", "mode", fallback="sni").lower()
+
+    if mode == "http":
+        print(f"{Colors.CYAN}[*] Mode = HTTP → launching main_http.py{Colors.RESET}")
+        runpy.run_path("main_http.py", run_name="__main__")
+        sys.exit(0)
+
     tunnel = Tunnel()
     tunnel.create_connection()
