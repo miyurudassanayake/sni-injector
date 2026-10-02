@@ -1,9 +1,4 @@
-#!/usr/bin/env python3
-"""
-SNI/SSL Tunnel
-Improved version: threaded, thread-safe connection tracking,
-proper logging, cleaner error handling, graceful shutdown.
-"""
+#!/usr/bin/env python
 
 import time
 import select

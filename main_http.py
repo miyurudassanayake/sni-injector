@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-HTTP Custom Payload Injector
-Improved version with proper SSH banner waiting
-"""
 
 import socket
 import select
@@ -292,3 +288,4 @@ class HTTPInjector:
 if __name__ == "__main__":
     injector = HTTPInjector()
     injector.start()
+    #

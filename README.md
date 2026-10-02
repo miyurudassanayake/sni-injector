@@ -85,7 +85,7 @@ To do so, we need to install a proxy on our server and enable TLS encryption. We
 
 <br>
 
-## HTTP Payload Injector Mode
+## HTTP Payload Injection Mode
 
 ### What is it?
 
