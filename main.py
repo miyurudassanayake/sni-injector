@@ -1,106 +1,223 @@
-import time, select, threading, time, select, configparser, ssl, os, certifi, socket, warnings
+#!/usr/bin/env python
+
+import time
+import select
+import threading
+import configparser
+import ssl
+import os
+import sys
+import socket
+import warnings
+import argparse
+import runpy
+
+import certifi
+
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-class Tunnel():
-    def __init__(self):
-        self.config = configparser.ConfigParser()
-        self.config.read_file(open('settings.ini'))
-        self.local_ip = self.config['settings']['local_ip']
-        self.listen_port = int(self.config['settings']['listen_port'])
 
-    def tunneling(self, client, stunnel_socket):
-        connected = True
-        print("[*] Connection Established.")
-        while connected == True:
-            r, w, x = select.select([client, stunnel_socket], [], [client, stunnel_socket], 3)
-            if x:
-                connected = False
-                break
-            for i in r:
+class Colors:
+    GREEN = "\033[92m"
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    CYAN = "\033[96m"
+    ORANGE = "\033[33m"
+    RESET = "\033[0m"
+
+
+class Tunnel:
+    def __init__(self, config_file="settings.ini"):
+        self.config = configparser.ConfigParser()
+        if not os.path.exists(config_file):
+            print(f"{Colors.RED}[!] {config_file} not found{Colors.RESET}")
+            sys.exit(1)
+
+        self.config.read(config_file)
+
+        self.local_ip = self.config.get("settings", "local_ip", fallback="127.0.0.1")
+        self.listen_port = self.config.getint("settings", "listen_port", fallback=8080)
+
+        self.ssh_host = self.config.get("ssh", "host", fallback="127.0.0.1")
+        self.ssh_port = self.config.getint("ssh", "port", fallback=443)
+        self.ssh_user = self.config.get("ssh", "user", fallback="root")
+
+        self.sni_host = self.config.get("sni", "server_name", fallback=self.ssh_host)
+
+        self.active_connections = 0
+        self.lock = threading.Lock()
+
+        print(f"{Colors.CYAN}[*] SNI/SSL Tunnel started{Colors.RESET}")
+        print(f"    Local     : {self.local_ip}:{self.listen_port}")
+        print(f"    Target    : {self.ssh_user}@{self.ssh_host}:{self.ssh_port}")
+        print(f"    SNI       : {self.sni_host}")
+        print("-" * 55)
+        print(f"{Colors.YELLOW}Suggested SSH command:{Colors.RESET}")
+        print(f'ssh -C -o "ProxyCommand=nc -X CONNECT -x {self.local_ip}:{self.listen_port} %h %p" \\')
+        print(f'    {self.ssh_user}@{self.ssh_host} -p {self.ssh_port} -CND 1080 \\')
+        print(f'    -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null')
+        print("-" * 55)
+
+    def log(self, msg, level="info"):
+        timestamp = time.strftime("%H:%M:%S")
+        color = {
+            "info": Colors.CYAN,
+            "success": Colors.GREEN,
+            "error": Colors.RED,
+            "warn": Colors.YELLOW,
+        }.get(level, Colors.RESET)
+        print(f"{color}[{timestamp}] {msg}{Colors.RESET}")
+        try:
+            with open("logs.txt", "a") as f:
+                f.write(f"[{timestamp}] {msg}\n")
+        except OSError:
+            pass
+
+    def tunneling(self, client, remote_socket):
+        try:
+            while True:
+                r, _, x = select.select(
+                    [client, remote_socket], [], [client, remote_socket], 60
+                )
+                if x:
+                    break
+                if not r:
+                    continue
+                for sock in r:
+                    try:
+                        data = sock.recv(32768)
+                        if not data:
+                            return
+                        if sock is remote_socket:
+                            client.sendall(data)
+                        else:
+                            remote_socket.sendall(data)
+                    except (ConnectionResetError, BrokenPipeError, OSError):
+                        return
+        finally:
+            for s in (client, remote_socket):
                 try:
-                    data = i.recv(16384)
-                    if not data:
-                        connected = False
-                    if i is stunnel_socket:
-                        client.send(data)
-                    else:
-                        stunnel_socket.send(data)
-                except KeyboardInterrupt:
-                    print("Exited")
-                    connected = False
-                except Exception as e:
-                    self.logs(f' {e}')
-                    connected = False
-        client.close()
-        stunnel_socket.close()
-        self.logs('[*] Client disconnected')
-        print("[*] Client disconnected!")
+                    s.close()
+                except Exception:
+                    pass
+            with self.lock:
+                self.active_connections -= 1
+            self.log(f"Connection closed | Active: {self.active_connections}", "warn")
 
     def destination(self, client, address):
-        print("[*] New Client connected!")
-        self.logs(f'[*] Client{address}received!')
+        with self.lock:
+            self.active_connections += 1
+        self.log(f"New client {address[0]}:{address[1]} | Active: {self.active_connections}")
+
+        remote_socket = None
+        closed_by_helper = False
         try:
-            request = client.recv(9124).decode()
-            host = self.config['ssh']['host']
-            port = request.split(':')[-1].split()[0]
-            stunnel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            stunnel_socket.connect((host, int(port)))
-            print(f'[TCP] connected to {host}:{port}')
-            self.logs(f'[TCP] connected to {host}:{port}')
-            SNI_HOST = self.config['sni']['server_name']
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-            stunnel_socket = context.wrap_socket(stunnel_socket, server_hostname=str(SNI_HOST))
-            context.verify_mode = ssl.CERT_REQUIRED
-            context.load_verify_locations(cafile=os.path.relpath(certifi.where()),capath=None, cadata=None)
-            self.logs(f'[TCP] Handshaked successfully to {SNI_HOST}')
-            print(f'[TCP] Handshaked successfully to {SNI_HOST}')
-            self.logs(f"[TCP] Protocol :{stunnel_socket.version()}")
+            client.settimeout(15)
+            request = client.recv(9124).decode(errors="ignore")
+            if not request:
+                self.log("Empty request from client", "warn")
+                client.close()
+                with self.lock:
+                    self.active_connections -= 1
+                return
+
+            host = self.ssh_host
             try:
-                self.logs(f"Ciphersuite : {stunnel_socket.cipher()[0]}")
-                print(f"[*] Ciphersuite : {stunnel_socket.cipher()[0]}")
-            except:pass
-            self.logs(f"Peerprincipal: C={stunnel_socket.getpeercert()}")              
-            client.send(b"HTTP/1.1 200 Connection Established\r\n\r\n")
-            self.tunneling(client, stunnel_socket)
+                port = int(request.split(":")[-1].split()[0])
+            except (ValueError, IndexError):
+                port = self.ssh_port
+
+            remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            remote_socket.settimeout(15)
+            remote_socket.connect((host, port))
+            self.log(f"TCP connected -> {host}:{port}")
+
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            context.verify_mode = ssl.CERT_REQUIRED
+            context.load_verify_locations(cafile=certifi.where())
+
+            remote_socket = context.wrap_socket(remote_socket, server_hostname=self.sni_host)
+            self.log(f"TLS handshake OK -> {self.sni_host}", "success")
+            self.log(f"Protocol: {remote_socket.version()}")
+            try:
+                cipher = remote_socket.cipher()
+                if cipher:
+                    self.log(f"Cipher: {cipher[0]}")
+            except Exception:
+                pass
+
+            client.sendall(b"HTTP/1.1 200 Connection Established\r\n\r\n")
+            remote_socket.settimeout(None)
+            client.settimeout(None)
+
+            self.log("Tunnel established - starting relay", "success")
+            closed_by_helper = True
+            self.tunneling(client, remote_socket)
+
+        except socket.timeout:
+            self.log("Connection timed out", "error")
         except Exception as e:
-            self.logs(f"[!!!] {e}")
-            print(f"[Error] {e}")
+            self.log(f"Error: {e}", "error")
+        finally:
+            if not closed_by_helper:
+                for s in (client, remote_socket):
+                    if s:
+                        try:
+                            s.close()
+                        except Exception:
+                            pass
+                with self.lock:
+                    self.active_connections -= 1
 
     def create_connection(self):
-        for res in socket.getaddrinfo(self.local_ip, self.listen_port, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, socket.AI_PASSIVE):
-            af, socktype, proto, canonname, sa = res
-            try:
-                listen_socket = socket.socket(af, socktype, proto)
-            except OSError as e:
-                self.logs(f"[!!!] {e}")
-                print(f"[Error] {e}")
-                exit(1)
-            try:
-                listen_socket.bind((self.local_ip, self.listen_port))
-                listen_socket.listen(1)
-            except OSError as e:
-                self.logs(f"[!!!] {e}")
-                print(f"[Error] {e}")
-                listen_socket.close()
-                exit(1)
-                
-            self.logs(f'Waiting for incoming connection to : {self.local_ip}:{self.listen_port}\n')
-            print(f'Waiting for incoming connection to : {self.local_ip}:{self.listen_port}\n')
-            while 1==1:
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        try:
+            server.bind((self.local_ip, self.listen_port))
+            server.listen(50)
+            self.log(f"Listening on {self.local_ip}:{self.listen_port}", "success")
+        except OSError as e:
+            self.log(f"Cannot bind: {e}", "error")
+            sys.exit(1)
+
+        try:
+            while True:
+                client, address = server.accept()
+                t = threading.Thread(
+                    target=self.destination, args=(client, address), daemon=True
+                )
+                t.start()
+        except KeyboardInterrupt:
+            print(f"\n{Colors.YELLOW}[*] Shutting down...{Colors.RESET}")
+            if os.path.exists("logs.txt"):
                 try:
-                    client, address = listen_socket.accept()
-                    thread = threading.Thread(target=self.destination, args=(client, address)).start()
-                except KeyboardInterrupt:
-                    print("\n[*] Exiting...")  
-                    if os.path.exists("logs.txt"):os.remove("logs.txt")
-                    break
-
-    def logs(self, log):
-        logtime = str(time.ctime()).split()[3]
-        logfile = open('logs.txt', 'a')
-        logfile.write(f'[{logtime}] : {str(log)}\n')
+                    os.remove("logs.txt")
+                except OSError:
+                    pass
+        finally:
+            server.close()
 
 
-if __name__ == '__main__':
-    start = Tunnel()
-    start.create_connection()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="SNI / HTTP Tunnel")
+    parser.add_argument("-http", "--http", action="store_true", help="Force HTTP Payload mode")
+    parser.add_argument("-tls", "--tls", "--sni", action="store_true", help="Force TLS/SNI mode")
+    args = parser.parse_args()
+
+    if args.http:
+        mode = "http"
+    elif args.tls:
+        mode = "sni"
+    else:
+        config = configparser.ConfigParser()
+        config.read("settings.ini")
+        mode = config.get("settings", "mode", fallback="sni").lower()
+
+    if mode == "http":
+        print(f"{Colors.CYAN}[*] Mode = HTTP → launching main_http.py{Colors.RESET}")
+        runpy.run_path("main_http.py", run_name="__main__")
+        sys.exit(0)
+
+    tunnel = Tunnel()
+    tunnel.create_connection()

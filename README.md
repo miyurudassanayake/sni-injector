@@ -85,6 +85,25 @@ To do so, we need to install a proxy on our server and enable TLS encryption. We
 
 <br>
 
+## HTTP Payload Injection Mode
+
+### What is it?
+
+Where the SNI mode relies on TLS handshake spoofing (present a certificate SNI your ISP treats as "free"), the HTTP Payload Injector works one layer up: before any TLS or SSH data is exchanged, it sends a crafted plaintext HTTP request to the remote host first.
+
+Many ISP/firewall filters inspect only the first few packets of a connection to decide whether to allow, throttle, or zero-rate it. If those first packets look like an HTTP request to an allowed/zero-rated host: a `GET`/`OPTIONS` request with a `Host:` header the firewall recognizes, or a `Connection: Upgrade` / `Upgrade: websocket` header pair that some carriers treat specially, the firewall lets the connection through before it ever sees what's actually inside.
+
+### How it works
+
+1. The script listens locally (`local_ip:listen_port` from `settings_http.ini`) and accepts a client connection, normally your `ssh` process via a `ProxyCommand`.
+2. It takes the payload template from `[payload]` in `settings_http.ini` and substitutes placeholders like `[host]`, `[port]`, `[crlf]`, `[host_port]` with the real target values.
+3. That crafted payload is sent first, over a plain TCP socket to the target (or to a `[proxy]` host if one is configured). This is the part designed to slip past the firewall's inspection.
+4. The script then reads the response and keeps watching for the point where the *real* SSH banner (`SSH-2.0-...`) shows up, discarding any HTTP-looking noise in between (`wait_for_ssh_banner`).
+5. Once the real SSH banner is seen, it's relayed back to the client, and from that point the script just pipes raw bytes both directions (`tunnel`). It's a transparent TCP relay for the rest of the SSH session.
+
+In short: SNI mode disguises the connection at the TLS layer, HTTP mode disguises it at the plaintext-request layer. Pick whichever one matches what your ISP is actually filtering.
+<br>
+
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/miyurudassanayake/sni-injector.svg)](https://github.com/miyurudassanayake/sni-injector)
